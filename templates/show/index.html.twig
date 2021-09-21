@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Details{% endblock %}
+
+{% block body %}
+<div class="container"> 
+    <h1 class="title p-1">{{ article.title }}</h1>
+    <div class="img-fluid">
+            <img width="100%" src="/assets/blog/images/{{ article.image }}" alt=" {{ article.title }}">
+    </div>
+    <div class="row">
+        <p class="date">Ecrit le {{ article.createdAt  | date("m/d/Y") }} à {{ article.createdAt  | date("H:i")}} par <span> {{ article.author}}</span> </p>
+        <p class="content text-justify">
+            {{ article.content | raw }}
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+
