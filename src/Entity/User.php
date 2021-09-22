@@ -2,15 +2,23 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @ORM\Entity
+ * @UniqueEntity(
+ *     fields={"email"},
+ *     message="Cet email existe déjà."
+ * )
  */
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
@@ -19,25 +27,51 @@ class User
      */
     private $id;
 
-    /**
+   /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 50,
+     *      minMessage = "Votre prénom(s) doit au minimum {{ limit }} charactères",
+     *      maxMessage = "Votre prénom(s) doit au maximum{{ limit }} charactères"
+     * )    
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 50,
+     *      minMessage = "Votre nom doit au minimum {{ limit }} charactères",
+     *      maxMessage = "Votre nom doit au maximum{{ limit }} charactères"
+     * )    
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Email(
+     *     message = "L'email '{{ value }}' n'est pas valide."
+     * )
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Length(
+     *      min = 4,
+     *      max = 50,
+     *      minMessage = "Votre mot de passe doit au minimum {{ limit }} charactères",
+     *      maxMessage = "Votre mot de passe doit au maximum{{ limit }} charactères"
+     * ) 
      */
     private $password;
+
+    /**
+     * @Assert\EqualTo(propertyPath="password", message="Les deux mots de passe doivent être identique.")
+     */
+    private $passwordConfirm;
 
     /**
      * @ORM\Column(type="datetime")
@@ -50,9 +84,9 @@ class User
     private $articles;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="json")
      */
-    private $username;
+    private $roles = [];
 
     public function __construct()
     {
@@ -101,14 +135,14 @@ class User
         return $this;
     }
 
-    public function getPassword(): ?string
+    public function getPasswordConfirm(): ?string
     {
-        return $this->password;
+        return $this->passwordConfirm;
     }
 
-    public function setPassword(string $password): self
+    public function setPasswordConfirm(string $passwordConfirm): self
     {
-        $this->password = $password;
+        $this->passwordConfirm = $passwordConfirm;
 
         return $this;
     }
@@ -155,20 +189,82 @@ class User
         return $this;
     }
 
-    public function getUsername(): ?string
+    public function __toString()
     {
-        return $this->username;
+        return $this->firstname.' '.$this->lastname;
+    }
+    
+
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
     }
 
-    public function setUsername(string $username): self
+    /**
+     * @deprecated since Symfony 5.3, use getUserIdentifier instead
+     */
+    public function getUsername(): string
     {
-        $this->username = $username;
+        return (string) $this->email;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
 
         return $this;
     }
 
-    public function __toString()
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
     {
-        return $this->firstname.' '.$this->lastname;
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * Returning a salt is only needed, if you are not using a modern
+     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+     *
+     * @see UserInterface
+     */
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials()
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 }
