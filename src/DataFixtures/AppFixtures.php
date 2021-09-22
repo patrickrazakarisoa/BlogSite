@@ -19,9 +19,8 @@ class AppFixtures extends Fixture
         $faker = Faker\Factory::create();
         $users = [];
 
-        for ($i=0; $i < 50; $i++) {
+        for ($i=0; $i < 10; $i++) {
             $user = new User();
-            $user->setUsername($faker->name);
             $user->setFirstname($faker->firstName());
             $user->setLastname($faker->lastName());
             $user->setEmail($faker->email);
@@ -33,7 +32,7 @@ class AppFixtures extends Fixture
 
         $categories = [];
 
-        for ($i=0; $i < 15; $i++) {
+        for ($i=0; $i < 5; $i++) {
             $category = new Category();
             $category->setTitle($faker->text(50));
             $category->setDescription($faker->text(250));
@@ -43,14 +42,17 @@ class AppFixtures extends Fixture
             $categories[] = $category;            
         }
 
-        for ($i=0; $i < 100; $i++) {
+        $articles = [];
+
+        for ($i=0; $i < 20; $i++) {
             $article = new Article();
             $article->setTitle($faker->text(50));
             $article->setContent($faker->text(5000));
             $article->setImage($faker->imageUrl());
             $article->setCreatedAt( new \DateTime());
-            $article->addCategory($categories[$faker->numberBetween(0,14)]);
-            $article->setAuthor($users[$faker->numberBetween(0,49)]);
+            $article->addCategory($categories[$faker->numberBetween(0,4)]);
+            $article->setAuthor($users[$faker->numberBetween(0,9)]);
+            $articles[] = $article;
             $manager->persist($article);
         }
 
